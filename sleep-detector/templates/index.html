@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sleep Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Sleep Detection System 😴</h1>
+    <img src="{{ url_for('video') }}" id="videoFeed">
+    
+    <!-- Hidden audio element for alarm with controls -->
+    <audio id="alarmSound" preload="auto">
+        <source src="/static/Utha Utha Diwali Aali - Dj Remix.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Status display -->
+    <div id="status" class="status-box">
+        <p>Status: <span id="statusText">Monitoring...</span></p>
+        <button id="soundToggle" class="control-button">🔊 Enable Sound</button>
+    </div>
+    
+    <script>
+        // Global audio control
+        let soundEnabled = false;
+        let lastAlertState = false;
+        let audioElement = document.getElementById('alarmSound');
+        let soundToggleBtn = document.getElementById('soundToggle');
+        
+        // Toggle sound on/off
+        soundToggleBtn.addEventListener('click', function() {
+            soundEnabled = !soundEnabled;
+            soundToggleBtn.textContent = soundEnabled ? '🔊 Sound Enabled' : '🔇 Sound Disabled';
+            soundToggleBtn.style.backgroundColor = soundEnabled ? '#ff4444' : '#666';
+            if (!soundEnabled) {
+                audioElement.pause();
+            }
+        });
+        
+        // Preload audio on first interaction
+        document.addEventListener('click', function() {
+            if (audioElement.paused && !soundEnabled) {
+                audioElement.play().then(() => {
+                    audioElement.pause();
+                    audioElement.currentTime = 0;
+                }).catch(e => console.log('Preload failed:', e));
+            }
+        }, { once: true });
+        
+        // Check alert status periodically
+        setInterval(function() {
+            fetch('/api/alert-status')
+                .then(response => response.json())
+                .then(data => {
+                    const statusElement = document.getElementById('statusText');
+                    
+                    if (data.alert) {
+                        statusElement.textContent = '🚨 DROWSINESS DETECTED!';
+                        statusElement.style.color = 'red';
+                        statusElement.parentElement.style.backgroundColor = '#500';
+                        
+                        // Play alarm if sound is enabled and not already playing
+                        if (soundEnabled && !lastAlertState) {
+                            audioElement.currentTime = 0;
+                            audioElement.loop = true;
+                            audioElement.play().catch(e => {
+                                console.log('Audio play error:', e);
+                            });
+                        }
+                        lastAlertState = true;
+                    } else {
+                        statusElement.textContent = '✅ Eyes Open';
+                        statusElement.style.color = 'green';
+                        statusElement.parentElement.style.backgroundColor = '#151';
+                        
+                        // Stop alarm
+                        audioElement.pause();
+                        audioElement.loop = false;
+                        lastAlertState = false;
+                    }
+                })
+                .catch(error => console.log('Error fetching alert status:', error));
+        }, 100);
+    </script>
+</body>
+</html>
