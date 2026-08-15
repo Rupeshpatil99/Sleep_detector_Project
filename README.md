@@ -46,12 +46,4 @@ A small Flask web app that detects eyes and faces from a webcam feed using OpenC
 - `sleep-detector/templates/index.html` — simple front-end
 - `sleep-detector/static/style.css` — styles for the UI
 
-## Troubleshooting
-- If the webcam cannot be accessed, ensure no other app is using it and that camera permissions are granted.
-- If detection is poor, try different lighting or move the camera closer to the subject.
 
-## License
-This project is provided as-is for learning and demo purposes. Add a license file if you want to publish it.
-
-## Acknowledgements
-- Built with OpenCV and Flask.
